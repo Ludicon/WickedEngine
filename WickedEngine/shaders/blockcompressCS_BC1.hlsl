@@ -1,9 +1,14 @@
 #include "globals.hlsli"
 
 // Compressonator is better quality but slower:
-#define USE_COMPRESSONATOR
+//#define USE_COMPRESSONATOR
 
-#ifdef USE_COMPRESSONATOR
+// Spark is better quality and faster.
+#define USE_SPARK
+
+#if defined(USE_SPARK)
+#include "spark/spark_bcn.hlsli"
+#elif defined(USE_COMPRESSONATOR)
 #pragma dxc diagnostic push
 #pragma dxc diagnostic ignored "-Wambig-lit-shift"
 #pragma dxc diagnostic ignored "-Wunused-value"
@@ -12,29 +17,22 @@
 #pragma dxc diagnostic pop
 #else
 #include "BlockCompress.hlsli"
-#endif // USE_COMPRESSONATOR
+#endif // USE_SPARK
 
-#if !defined(BC3) && !defined(BC4) && !defined(BC5)
+#if !defined(BC3) && !defined(BC4) && !defined(BC5) && !defined(BC7)
 #define BC1
 #endif // !BC3 && !BC4 && !BC5
 
 Texture2D input : register(t0);
 
-#ifdef BC1
+#if defined(BC1) || defined(BC4)
 RWTexture2D<uint2> output : register(u0);
-#endif // BC1
+#endif // BC1 || BC4
 
-#ifdef BC3
+#if defined(BC3) || defined(BC5) || defined(BC7)
 RWTexture2D<uint4> output : register(u0);
-#endif // BC3
+#endif // BC3 || BC5 || BC7
 
-#ifdef BC4
-RWTexture2D<uint2> output : register(u0);
-#endif // BC4
-
-#ifdef BC5
-RWTexture2D<uint4> output : register(u0);
-#endif // BC5
 
 #if 0
 // Dithering is to fix bad-looking gradients in BC1 and BC3 RGB compression:
@@ -76,6 +74,10 @@ void main(uint3 DTid : SV_DispatchThreadID)
 	float block_v[16];
 #endif // BC5
 
+#ifdef BC7
+	float3 block[16];
+#endif // BC1
+
 	//SUB-BLOCK///////////////////////////////////////////////////////////////////////
 
 	float4 red = input.GatherRed(sampler_linear_clamp, uv, int2(0, 0));
@@ -83,7 +85,7 @@ void main(uint3 DTid : SV_DispatchThreadID)
 	float4 blue = input.GatherBlue(sampler_linear_clamp, uv, int2(0, 0));
 	float4 alpha = input.GatherAlpha(sampler_linear_clamp, uv, int2(0, 0));
 
-#if defined(BC1) || defined(BC3)
+#if defined(BC1) || defined(BC3) || defined(BC7)
 	block[0] = DITHER(float3(red[3], green[3], blue[3]));
 	block[1] = DITHER(float3(red[2], green[2], blue[2]));
 	block[4] = DITHER(float3(red[0], green[0], blue[0]));
@@ -234,7 +236,29 @@ void main(uint3 DTid : SV_DispatchThreadID)
 
 	//COMPRESS-WRITE///////////////////////////////////////////////////////////////////
 
-#ifdef USE_COMPRESSONATOR
+#if defined(USE_SPARK)
+
+#ifdef BC1
+	output[DTid.xy] = compress_bc1_rgb(block);
+#endif // BC1
+
+#ifdef BC3
+	output[DTid.xy] = compress_bc3_rgba(block, block_a);
+#endif // BC3
+
+#ifdef BC4
+	output[DTid.xy] = compress_bc4_r(block_r);
+#endif // BC4
+
+#ifdef BC5
+	output[DTid.xy] = compress_bc5_rg(block_u, block_v);
+#endif // BC5
+
+#ifdef BC7
+	output[DTid.xy] = compress_bc7_rgb(block);
+#endif // BC7
+
+#elif defined(USE_COMPRESSONATOR)
 
 #ifdef BC1
 	output[DTid.xy] = CompressBlockBC1_UNORM(block, CMP_QUALITY2, /*isSRGB =*/ false);

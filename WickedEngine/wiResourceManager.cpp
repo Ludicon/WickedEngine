@@ -869,7 +869,11 @@ namespace wi
 									Texture uncompressed_src = std::move(resource->texture);
 									resource->srgb_subresource = -1;
 
-									desc.format = Format::BC1_UNORM;
+									if (has_flag(flags, Flags::IMPORT_BC7))
+										desc.format = Format::BC7_UNORM;
+									else
+										desc.format = Format::BC1_UNORM;
+
 									if (has_flag(flags, Flags::IMPORT_NORMALMAP))
 									{
 										desc.format = Format::BC5_UNORM;

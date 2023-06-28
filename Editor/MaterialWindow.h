@@ -21,6 +21,7 @@ public:
 	wi::gui::CheckBox doubleSidedCheckBox;
 	wi::gui::CheckBox outlineCheckBox;
 	wi::gui::CheckBox preferUncompressedCheckBox;
+	wi::gui::CheckBox preferBC7CheckBox;
 	wi::gui::ComboBox shaderTypeComboBox;
 	wi::gui::ComboBox blendModeComboBox;
 	wi::gui::ComboBox shadingRateComboBox;

@@ -144,6 +144,18 @@ void MaterialWindow::Create(EditorComponent* _editor)
 		});
 	AddWidget(&preferUncompressedCheckBox);
 
+	preferBC7CheckBox.Create("Prefer BC7 Textures: ");
+	preferBC7CheckBox.SetTooltip("For uncompressed textures (jpg, png, etc.) or transcodable textures (KTX2, Basis) here it is possible to enable/disable auto block compression on importing. \nBlock compression can reduce GPU memory usage and improve performance, but it can result in degraded quality.");
+	preferBC7CheckBox.SetPos(XMFLOAT2(x, y += step));
+	preferBC7CheckBox.SetSize(XMFLOAT2(hei, hei));
+	preferBC7CheckBox.OnClick([&](wi::gui::EventArgs args) {
+		MaterialComponent* material = editor->GetCurrentScene().materials.GetComponent(entity);
+		if (material != nullptr)
+			material->SetPreferBC7TexturesEnabled(args.bValue);
+		textureSlotComboBox.SetSelected(textureSlotComboBox.GetSelected());
+		});
+	AddWidget(&preferBC7CheckBox);
+
 
 	shaderTypeComboBox.Create("Shader: ");
 	shaderTypeComboBox.SetTooltip("Select a shader for this material. \nCustom shaders (*) will also show up here (see wi::renderer:RegisterCustomShader() for more info.)\nNote that custom shaders (*) can't select between blend modes, as they are created with an explicit blend mode.");
@@ -788,6 +800,7 @@ void MaterialWindow::SetEntity(Entity entity)
 		doubleSidedCheckBox.SetCheck(material->IsDoubleSided());
 		outlineCheckBox.SetCheck(material->IsOutlineEnabled());
 		preferUncompressedCheckBox.SetCheck(material->IsPreferUncompressedTexturesEnabled());
+		preferBC7CheckBox.SetCheck(material->IsPreferBC7TexturesEnabled());
 		normalMapSlider.SetValue(material->normalMapStrength);
 		roughnessSlider.SetValue(material->roughness);
 		reflectanceSlider.SetValue(material->reflectance);
@@ -958,6 +971,7 @@ void MaterialWindow::ResizeLayout()
 	add_right(doubleSidedCheckBox);
 	add_right(outlineCheckBox);
 	add_right(preferUncompressedCheckBox);
+	add_right(preferBC7CheckBox);
 	add(shaderTypeComboBox);
 	add(blendModeComboBox);
 	add(shadingRateComboBox);

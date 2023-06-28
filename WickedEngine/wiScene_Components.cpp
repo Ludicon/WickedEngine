@@ -406,6 +406,8 @@ namespace wi::scene
 		if (!IsPreferUncompressedTexturesEnabled())
 		{
 			flags |= wi::resourcemanager::Flags::IMPORT_BLOCK_COMPRESSED;
+			if (IsPreferBC7TexturesEnabled())
+				flags |= wi::resourcemanager::Flags::IMPORT_BC7;
 		}
 		switch (slot)
 		{

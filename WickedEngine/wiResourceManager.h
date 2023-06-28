@@ -63,6 +63,7 @@ namespace wi
 			IMPORT_NORMALMAP = 1 << 2, // image import will try to use optimal normal map encoding
 			IMPORT_BLOCK_COMPRESSED = 1 << 3, // image import will request block compression for uncompressed or transcodable formats
 			IMPORT_DELAY = 1 << 4, // delay importing resource until later, for example when proper flags can be determined
+			IMPORT_BC7 = 1 << 5,
 		};
 
 		// Load a resource
